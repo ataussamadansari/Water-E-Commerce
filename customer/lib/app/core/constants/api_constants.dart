@@ -7,13 +7,18 @@ class ApiConstants {
   static const String sendOtp = "/auth/send-otp"; // POST
   static const String verifyOtp = "/auth/verify-otp"; // POST
   static const String me = "/me"; // GET
-  static const String logout = "/logout"; // POST
 
   // ------------------ CUSTOMER ----------------
   static const String ledger = "/customer/ledger"; // GET
   static const String orders = "/customer/orders"; // GET
   static const String orderPlace = "/customer/orders"; // POST
   static const String getOrder = "/customer/orders/{id}"; // GET
+  static const String cart = "/customer/cart"; // GET
+  static const String addCart = "/customer/cart"; // POST
+  static const String removeItem = "/customer/cart/{cartItem}/delete"; // POST
+  static const String clearCart = "/customer/cart/clear"; // POST
+  static const String checkout = "/customer/cart/checkout"; // POST
+  
   static const String products = "/customer/products"; // GET
   static const String profile = "/customer/profile"; // GET
   static const String updateProfile = "/customer/profile"; // PUT

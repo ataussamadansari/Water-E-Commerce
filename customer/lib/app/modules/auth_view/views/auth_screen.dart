@@ -155,13 +155,13 @@ class AuthScreen extends GetView<AuthScreenController> {
                                   decoration: InputDecoration(
                                     labelText: "Enter OTP",
                                     counterText: "",
-                                    prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                                    prefixIcon: Icon(Icons.password, color: primaryColor),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.transparent,
+                                    // fillColor: Colors.transparent,
                                   ),
                                 ),
                               ),

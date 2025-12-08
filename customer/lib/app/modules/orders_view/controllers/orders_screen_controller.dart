@@ -1,19 +1,22 @@
+import 'package:customer/app/data/services/orders/order_service.dart';
 import 'package:get/get.dart';
+import '../../../data/models/order/order_model.dart'; // Adjust import based on your model location
 
-import '../../../data/models/order/order_model.dart';
-import '../../../data/services/orders/order_service.dart';
-
-class OrdersScreenController extends GetxController
-{
+class OrdersScreenController extends GetxController {
   final OrderService _orderService = Get.find<OrderService>();
 
-  // State Variables
+  RxList<OrderData> get orders => _orderService.orders;
   bool get isLoading => _orderService.isLoading.value;
-  RxList<OrderData> get orderData => _orderService.orders;
+  RxBool get isError => _orderService.isError;
+  RxString get hasError => _orderService.hasError;
 
   @override
   void onInit() {
     super.onInit();
-    _orderService.fetchOrders();
+    refreshOrders();
+  }
+
+  Future<void> refreshOrders() async {
+    await _orderService.fetchOrders();
   }
 }

@@ -42,7 +42,7 @@ class OrderRepository {
   Future<ApiResponse<OrdersResponse>> getOrders() async {
     try {
       final res = await _apiServices.get<OrdersResponse>(
-        ApiConstants.orderPlace,
+        ApiConstants.orders, // Corrected endpoint
         (data) => OrdersResponse.fromJson(data),
         cancelToken: _cancelToken,
       );
@@ -67,7 +67,11 @@ class OrderRepository {
 
   Future<ApiResponse<SingleOrderResponse>> getOrderById(int id) async {
     try {
-      final url = "${ApiConstants.products}/$id";
+      // Correctly construct URL using ID replacement if needed, but here simple append
+      // ApiConstants.getOrder is "/customer/orders/{id}"
+      // We should probably just construct it manually or replace {id}
+      final url = ApiConstants.getOrder.replaceAll("{id}", id.toString());
+      
       final res = await _apiServices.get<SingleOrderResponse>(
         url,
         (data) => SingleOrderResponse.fromJson(data),

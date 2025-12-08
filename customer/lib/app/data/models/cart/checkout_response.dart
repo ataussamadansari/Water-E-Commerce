@@ -1,0 +1,32 @@
+import '../order/order_model.dart';
+
+class CheckoutResponse {
+  CheckoutResponse({
+      this.success, 
+      this.message, 
+      this.data, 
+      this.errors,});
+
+  CheckoutResponse.fromJson(dynamic json) {
+    success = json['success'];
+    message = json['message'];
+    data = json['data'] != null ? OrderData.fromJson(json['data']) : null;
+    errors = json['errors'];
+  }
+  bool? success;
+  String? message;
+  OrderData? data;
+  dynamic errors;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['success'] = success;
+    map['message'] = message;
+    if (data != null) {
+      map['data'] = data?.toJson();
+    }
+    map['errors'] = errors;
+    return map;
+  }
+
+}

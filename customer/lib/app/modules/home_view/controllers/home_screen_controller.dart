@@ -1,5 +1,9 @@
+import 'package:customer/app/core/utils/helpers.dart';
 import 'package:customer/app/data/services/orders/order_service.dart';
-import 'package:flutter/material.dart'; // Changed to material for Colors & Icons
+import 'package:customer/app/data/services/profile/profile_service.dart';
+import 'package:customer/app/data/services/ledger/ledger_service.dart';
+import 'package:customer/app/data/services/cart/cart_service.dart';
+import 'package:flutter/material.dart'; 
 import 'package:get/get.dart';
 
 import '../../../data/models/products/product_model.dart';
@@ -9,10 +13,23 @@ import '../../../routes/app_routes.dart';
 class HomeScreenController extends GetxController {
   final ProductService _productService = Get.find<ProductService>();
   final OrderService _orderService = Get.find<OrderService>();
+  final ProfileService _profileService = Get.put(ProfileService());
+  final LedgerService _ledgerService = Get.put(LedgerService());
+  final CartService _cartService = Get.put(CartService());
 
   // State Variables
   bool get isLoading => _productService.isLoading.value;
+
   RxList<ProductModel> get productList => _productService.products;
+
+  // Profile Data Getter
+  get profileData => _profileService.profileData;
+  
+  // Ledger Data Getter
+  get ledgerData => _ledgerService.ledgerData;
+  
+  // Cart Data Getter
+  get cartData => _cartService.cart;
 
   // Loading state for the order button inside the bottom sheet
   final RxBool isOrdering = false.obs;
@@ -22,32 +39,21 @@ class HomeScreenController extends GetxController {
   void onInit() {
     super.onInit();
     _productService.fetchProducts();
+    _profileService.fetchProfile();
+    _ledgerService.fetchLedger();
+    _cartService.fetchCart();
   }
-
-  // --- Logic to Place Order ---
-  Future<void> orderPlace({
+  
+  // --- Logic to Add to Cart ---
+  Future<void> addToCart({
     required int productId,
     required int qty,
-    required String scheduledDate,
-    required String notes,
   }) async {
-
     try {
       isOrdering.value = true;
-      Get.back(); // Close the BottomSheet immediately
+      Get.back(); // Close the BottomSheet
 
-      final payload = {
-        "items": [
-          {
-            "product_id": productId,
-            "qty": qty,
-          }
-        ],
-        "scheduled_date": scheduledDate,
-        "notes": notes
-      };
-
-      await _orderService.placeOrder(payload);
+      await _cartService.addToCart(productId, qty);
 
     } catch (e) {
       Get.snackbar("Error", "Something went wrong: $e");
@@ -57,17 +63,20 @@ class HomeScreenController extends GetxController {
   }
 
   // --- UI Logic: Show Bottom Sheet ---
-  void showOrderDialog(BuildContext context, ProductModel product) {
-    final qtyController = TextEditingController(text: "1");
-    final notesController = TextEditingController();
-
-    // Default date: Today
-    RxString selectedDate = DateTime.now().toIso8601String().split('T')[0].obs;
-
+  void addToCartDialog(BuildContext context, ProductModel product) {
+    // Determine initial quantity. 
+    // If minOrderQty is available and > 0, use it. Otherwise use 1.
+    int initialQty = 1;
+    if (product.minOrderQty != null && product.minOrderQty is num && (product.minOrderQty as num) > 0) {
+      initialQty = (product.minOrderQty as num).toInt();
+    }
+    
+    final qtyController = TextEditingController(text: initialQty.toString());
+    
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(20),
-        decoration:  BoxDecoration(
+        decoration: BoxDecoration(
           color: Get.isDarkMode ? Colors.black : Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
@@ -80,11 +89,17 @@ class HomeScreenController extends GetxController {
               children: [
                 Expanded(
                   child: Text(
-                      "Order ${product.name ?? 'Item'}",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                    "Add ${product.name ?? 'Item'} to Cart",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close))
+                IconButton(
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.close),
+                ),
               ],
             ),
             const SizedBox(height: 15),
@@ -99,73 +114,47 @@ class HomeScreenController extends GetxController {
                 prefixIcon: Icon(Icons.shopping_bag_outlined),
               ),
             ),
-            const SizedBox(height: 15),
-
-            // 2. Date Picker
-            Obx(() => InkWell(
-              onTap: () async {
-                DateTime? picked = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 30)),
-                );
-                if (picked != null) {
-                  selectedDate.value = picked.toIso8601String().split('T')[0];
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Date: ${selectedDate.value}"),
-                    const Icon(Icons.calendar_today, color: Colors.blue),
-                  ],
-                ),
-              ),
-            )),
-            const SizedBox(height: 15),
-
-            // 3. Notes Input
-            TextField(
-              controller: notesController,
-              decoration: const InputDecoration(
-                labelText: "Notes (Optional)",
-                hintText: "e.g. Leave at front door",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.note_alt_outlined),
-              ),
-            ),
+            const SizedBox(height: 5),
+            if (product.minOrderQty != null)
+               Text("Minimum Order Quantity: ${product.minOrderQty}", style: TextStyle(color: Colors.grey, fontSize: 12)),
+            
             const SizedBox(height: 20),
 
-            // 4. Confirm Button
+            // 2. Add Button
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 onPressed: () {
                   if (qtyController.text.isEmpty) return;
+                  
+                  int qty = int.tryParse(qtyController.text) ?? initialQty;
+                  
+                  // Optional: Validate min quantity again if needed, or let server handle it.
+                  // Usually better to validate client side too if possible.
+                  if (qty < initialQty) {
+                     Get.snackbar("Invalid Quantity", "Minimum quantity is $initialQty");
+                     return;
+                  }
 
-                  orderPlace(
+                  addToCart(
                     productId: product.id!.toInt(),
-                    qty: int.tryParse(qtyController.text) ?? 1,
-                    scheduledDate: selectedDate.value,
-                    notes: notesController.text,
+                    qty: qty,
                   );
                 },
-                child: const Text("Confirm Order", style: TextStyle(fontSize: 16)),
+                child: const Text(
+                  "Add to Cart",
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -175,5 +164,13 @@ class HomeScreenController extends GetxController {
 
   void gotoOrder() {
     Get.toNamed(Routes.orders);
+  }
+
+  void gotoProfile() {
+    Get.toNamed(Routes.profile);
+  }
+  
+  void gotoLedger() {
+    Get.toNamed(Routes.ledger);
   }
 }
