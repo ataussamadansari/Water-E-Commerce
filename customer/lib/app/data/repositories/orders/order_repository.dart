@@ -22,7 +22,7 @@ class OrderRepository {
       );
 
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.message);
       } else {
         return ApiResponse.error(
           res.message,
@@ -48,7 +48,7 @@ class OrderRepository {
       );
 
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.message);
       } else {
         return ApiResponse.error(
           res.message,
@@ -79,7 +79,7 @@ class OrderRepository {
       );
 
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.message);
       } else {
         return ApiResponse.error(
           res.message,

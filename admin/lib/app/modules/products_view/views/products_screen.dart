@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/api_constants.dart';
 import '../controllers/products_screen_controller.dart';
 
 class ProductsScreen extends GetView<ProductsScreenController> {
@@ -101,7 +102,13 @@ class ProductsScreen extends GetView<ProductsScreenController> {
                           child: product.imagePath != null && product.imagePath!.isNotEmpty
                               ? ClipRRect(
                             borderRadius: BorderRadius.circular(50),
-                            child: Image.network(product.imagePath!, fit: BoxFit.cover),
+                            child: Image.network(
+                                _getImageUrl(product.imagePath!),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.broken_image, size: 20, color: Colors.grey);
+                                },
+                            ),
                           )
                               : const Icon(Icons.water_drop, color: Colors.blue),
                         ),
@@ -125,5 +132,18 @@ class ProductsScreen extends GetView<ProductsScreenController> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  String _getImageUrl(String path) {
+    if (path.startsWith('http')) return path;
+    String base = ApiConstants.baseUrl;
+    if (base.endsWith('/')) {
+      base = base.substring(0, base.length - 1);
+    }
+    String imgPath = path;
+    if (!imgPath.startsWith('/')) {
+      imgPath = '/$imgPath';
+    }
+    return "$base$imgPath";
   }
 }

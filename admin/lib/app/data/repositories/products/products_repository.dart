@@ -41,7 +41,7 @@ class ProductRepository {
   }
 
   // 2. Create Product
-  Future<ApiResponse<Product>> createProduct(Map<String, dynamic> productData) async {
+  Future<ApiResponse<Product>> createProduct(dynamic productData) async {
     try {
       final res = await _apiServices.post<SingleProductResponse>(
         ApiConstants.createProduct,
@@ -99,27 +99,49 @@ class ProductRepository {
   }
 
   // 4. Update Product
-  Future<ApiResponse<Product>> updateProduct(int id, Map<String, dynamic> productData) async {
+  Future<ApiResponse<Product>> updateProduct(int id, dynamic productData) async {
     try {
       // Replace {id} in the URL
       String url = ApiConstants.updateProduct.replaceAll('{id}', id.toString());
 
-      // Usually updates use PUT or PATCH
-      final res = await _apiServices.put<SingleProductResponse>(
-        url,
-            (data) => SingleProductResponse.fromJson(data),
-        data: productData,
-        cancelToken: _cancelToken,
-      );
-
-      if (res.success && res.data?.data != null) {
-        return ApiResponse.success(res.data!.data!);
-      } else {
-        return ApiResponse.error(
-          res.message,
-          statusCode: res.statusCode,
-          errors: res.errors,
+      // Use POST with _method: PUT if productData is FormData, 
+      // because many backends (PHP/Laravel) don't handle Multipart PUT requests.
+      if (productData is FormData) {
+        productData.fields.add(const MapEntry('_method', 'PUT'));
+        final res = await _apiServices.post<SingleProductResponse>(
+          url,
+              (data) => SingleProductResponse.fromJson(data),
+          data: productData,
+          cancelToken: _cancelToken,
         );
+        
+        if (res.success && res.data?.data != null) {
+          return ApiResponse.success(res.data!.data!);
+        } else {
+          return ApiResponse.error(
+            res.message,
+            statusCode: res.statusCode,
+            errors: res.errors,
+          );
+        }
+      } else {
+        // Fallback to normal PUT if not using FormData (or manually handled)
+        final res = await _apiServices.put<SingleProductResponse>(
+          url,
+              (data) => SingleProductResponse.fromJson(data),
+          data: productData,
+          cancelToken: _cancelToken,
+        );
+        
+        if (res.success && res.data?.data != null) {
+          return ApiResponse.success(res.data!.data!);
+        } else {
+          return ApiResponse.error(
+            res.message,
+            statusCode: res.statusCode,
+            errors: res.errors,
+          );
+        }
       }
     } on DioException catch (e) {
       return ApiResponse.error(

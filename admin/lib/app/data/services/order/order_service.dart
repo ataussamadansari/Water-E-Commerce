@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../models/orders/order_model.dart';
+import '../../models/api_response_model.dart';
 import '../../repositories/orders/orders_repository.dart';
 
 class OrderService extends GetxService {
@@ -105,6 +106,22 @@ class OrderService extends GetxService {
       return true;
     }
     return false;
+  }
+
+  // ----------------------------------------------------------------------
+  // ASSIGN ORDER (API → LOCAL UPDATE)
+  // ----------------------------------------------------------------------
+  Future<ApiResponse<Order>> assignOrder(int orderId, int userId) async {
+    final response = await _ordersRepo.assignOrder(orderId, userId);
+
+    if (response.success && response.data != null) {
+      // Wait, assignOrder returns ApiResponse<Order> with Order data?
+      // My repository logic returns ApiResponse.success(res.data!.data!) which is Order.
+      // So yes.
+      updateOrder(response.data!); // Local Sync
+      return response;
+    }
+    return response;
   }
 
   // ----------------------------------------------------------------------

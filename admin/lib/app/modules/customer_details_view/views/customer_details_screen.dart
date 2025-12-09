@@ -144,7 +144,39 @@ class CustomerDetailsScreen extends GetView<CustomerDetailsScreenController> {
             key: controller.formKey,
             child: Column(
               children: [
-                const Icon(Icons.store, size: 60, color: Colors.blueGrey),
+                if (controller.customer.value?.shopPhotoPath != null &&
+                    controller.customer.value!.shopPhotoPath.toString().isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    height: 120,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey[300]!, width: 2),
+                      image: DecorationImage(
+                        image: NetworkImage(
+                            controller.customer.value!.shopPhotoPath.toString()),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.blueGrey.withOpacity(0.1),
+                      child: Text(
+                        controller.customer.value?.shopName
+                                ?.toString()
+                                .substring(0, 1)
+                                .toUpperCase() ??
+                            "C",
+                        style: const TextStyle(
+                            fontSize: 50, color: Colors.blueGrey),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 20),
 
                 FormWidgets.buildTextField(

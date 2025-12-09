@@ -16,4 +16,10 @@ abstract class Routes
 
     static const regions = '/regions';
     static const addRegions = '/add-regions';
+
+    static const users = "/users";
+    static const addUser = "/add-user";
+    
+    static const ledger = '/ledger';
+    static const customerLedger = '/customer-ledger';
 }

@@ -16,7 +16,7 @@ class CartRepository {
       );
 
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.message);
       } else {
         return ApiResponse.error(
           res.message,
@@ -42,7 +42,7 @@ class CartRepository {
       );
 
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.message);
       } else {
         return ApiResponse.error(
           res.message,
@@ -73,7 +73,7 @@ class CartRepository {
       );
 
       if (res.success) {
-        return ApiResponse.success(res.data!); // assuming res.data is not null or handled
+        return ApiResponse.success(res.data!, message: res.message); // assuming res.data is not null or handled
       } else {
         return ApiResponse.error(
           res.message,
@@ -98,7 +98,7 @@ class CartRepository {
       );
 
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.message);
       } else {
         return ApiResponse.error(
           res.message,
@@ -124,7 +124,7 @@ class CartRepository {
       );
 
       if (res.success) {
-        return ApiResponse.success(res.data);
+        return ApiResponse.success(res.data, message: res.message);
       } else {
         return ApiResponse.error(
           res.message,

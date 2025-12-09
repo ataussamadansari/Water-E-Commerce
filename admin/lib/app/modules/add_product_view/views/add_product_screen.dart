@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -27,6 +29,45 @@ class AddProductScreen extends GetView<AddProductController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // --- Image Selection Section ---
+              _buildSectionTitle("Product Image"),
+              Center(
+                child: GestureDetector(
+                  onTap: controller.pickImage,
+                  child: Obx(() {
+                    if (controller.selectedImage.value != null) {
+                      return CircleAvatar(
+                        radius: 50,
+                        backgroundImage: FileImage(
+                          File(controller.selectedImage.value!.path),
+                        ),
+                        backgroundColor: Colors.grey,
+                      );
+                    } else if (controller.currentImageUrl != null &&
+                        controller.currentImageUrl!.isNotEmpty) {
+                      return CircleAvatar(
+                        radius: 50,
+                        backgroundImage: NetworkImage(
+                          controller.currentImageUrl!,
+                        ),
+                        backgroundColor: Colors.grey,
+                      );
+                    } else {
+                      return CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey[200],
+                        child: const Icon(
+                          Icons.camera_alt,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                      );
+                    }
+                  }),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // --- Basic Information Section ---
               _buildSectionTitle("Basic Information"),
 
@@ -37,6 +78,14 @@ class AddProductScreen extends GetView<AddProductController> {
                 validator: controller.requiredValidator,
               ),
               const SizedBox(height: 16),
+
+              /*FormWidgets.buildTextField(
+                controller: controller.skuController,
+                label: "SKU",
+                icon: Icons.qr_code,
+                validator: controller.requiredValidator,
+              ),
+              const SizedBox(height: 16),*/
 
               FormWidgets.buildTextField(
                 controller: controller.descriptionController,

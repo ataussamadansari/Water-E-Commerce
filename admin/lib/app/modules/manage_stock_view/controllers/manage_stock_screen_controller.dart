@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../data/models/products/product_model.dart';

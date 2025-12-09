@@ -1,9 +1,6 @@
 import 'package:admin/app/data/models/customers/customer_model.dart';
 import 'package:admin/app/data/repositories/customers/customers_repository.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-
-import '../../../core/utils/helpers.dart';
 
 class CustomerService extends GetxService {
   final CustomersRepository _customerRepo = CustomersRepository();

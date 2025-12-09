@@ -8,12 +8,14 @@ import '../../../../data/models/products/product_model.dart';
 class DashboardWidgets {
   // --- QUICK ACTION BUTTON ---
   static Widget buildQuickAction(
+    BuildContext context,
     IconData icon,
     String label,
     Color color,
     Color bgColor,
     Callback onTap,
   ) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -38,11 +40,7 @@ class DashboardWidgets {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -51,11 +49,13 @@ class DashboardWidgets {
 
   // --- SECTION HEADER ---
   static SliverToBoxAdapter buildSectionHeader(
+    BuildContext context,
     String title,
     Color color,
     Callback onTap, {
     String? actionText,
   }) {
+    final theme = Theme.of(context);
     return SliverToBoxAdapter(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -76,11 +76,7 @@ class DashboardWidgets {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                // color: Color(0xFF1A1A1A),
-              ),
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             if (actionText != null)
               GestureDetector(
@@ -122,19 +118,21 @@ class DashboardWidgets {
 
   // --- STAT CARD (Updated) ---
   static Widget buildStatCard({
+    required BuildContext context,
     required String title,
     required String value,
     required IconData icon,
     required Color color
   }) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.25),
+        color: theme.brightness == Brightness.dark ? theme.colorScheme.surfaceVariant : color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.25),
+            color: color.withOpacity(0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -150,16 +148,12 @@ class DashboardWidgets {
             children: [
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  // color: Color(0xFF2D3436),
-                ),
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.4),
+                  color: color.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, size: 20, color: color),
@@ -169,11 +163,7 @@ class DashboardWidgets {
           const SizedBox(height: 8),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -181,7 +171,8 @@ class DashboardWidgets {
   }
 
   // --- ORDER ITEM ---
-  static Widget buildOrderItem(Order order, bool isLast) {
+  static Widget buildOrderItem(BuildContext context, Order order, bool isLast) {
+    final theme = Theme.of(context);
     Color statusColor;
     IconData statusIcon;
 
@@ -217,7 +208,7 @@ class DashboardWidgets {
             ? null
             : Border(
                 bottom: BorderSide(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: theme.dividerColor,
                   width: 1,
                 ),
               ),
@@ -245,20 +236,15 @@ class DashboardWidgets {
                       child: Text(
                         // Use the customer's shop name from the nested object
                         order.customer?.shopName ?? 'N/A',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Color(0xFF2D3436),
-                        ),
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
                       "₹${order.totalAmount ?? '0.00'}", // Use totalAmount
-                      style: const TextStyle(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
                         color: Colors.blue,
                       ),
                     ),
@@ -267,7 +253,7 @@ class DashboardWidgets {
                 const SizedBox(height: 4),
                 Text(
                   order.orderNo ?? 'No Order ID', // Use orderNo
-                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
@@ -278,7 +264,8 @@ class DashboardWidgets {
   }
 
   // --- CUSTOMER CARD ---
-  static Widget buildCustomerCard(Customer customer) {
+  static Widget buildCustomerCard(BuildContext context, Customer customer, {VoidCallback? onEyeTap}) {
+    final theme = Theme.of(context);
     // Safely get the first letter of the shop name, default to 'C' if empty
     final String initial = (customer.shopName?.isNotEmpty == true)
         ? customer.shopName![0].toUpperCase()
@@ -297,22 +284,29 @@ class DashboardWidgets {
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.grey.withOpacity(0.1), width: 1),
+          bottom: BorderSide(color: theme.dividerColor, width: 1),
         ),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 24,
+            backgroundImage: (customer.shopPhotoPath != null &&
+                    customer.shopPhotoPath.toString().isNotEmpty)
+                ? NetworkImage(customer.shopPhotoPath.toString())
+                : null,
             backgroundColor: Colors.blue.withOpacity(0.1),
-            child: Text(
-              initial, // Use the dynamic initial
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
+            child: (customer.shopPhotoPath == null ||
+                    customer.shopPhotoPath.toString().isEmpty)
+                ? Text(
+                    initial, // Use the dynamic initial
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -321,10 +315,7 @@ class DashboardWidgets {
               children: [
                 Text(
                   customer.shopName ?? "Unknown Shop", // Use shopName
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -332,22 +323,25 @@ class DashboardWidgets {
                 if (fullAddress.isNotEmpty) // Show only if address exists
                   Text(
                     fullAddress, // Use the safely built address string
-                    style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                    style: theme.textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
               ],
             ),
           ),
-          IconButton(onPressed: () {}, icon: Icon(Icons.remove_red_eye)),
+          IconButton(
+            onPressed: onEyeTap,
+            icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+          ),
         ],
       ),
     );
   }
 
   // --- UPDATED PRODUCT CARD ---
-  // --- UPDATED PRODUCT CARD ---
-  static Widget buildProductCard(Product product, Color bgColor) {
+  static Widget buildProductCard(BuildContext context, Product product, Color bgColor) {
+    final theme = Theme.of(context);
     // FIX: Convert stockQty (String) → int
     final int stock = int.tryParse(product.stockQty?.toString() ?? "0") ?? 0;
 
@@ -355,7 +349,7 @@ class DashboardWidgets {
       width: 150,
       margin: const EdgeInsets.only(right: 12),
       child: Card(
-        color: bgColor,
+        color: theme.brightness == Brightness.dark ? theme.colorScheme.surfaceVariant : bgColor,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
@@ -400,10 +394,7 @@ class DashboardWidgets {
                   Text(
                     product.name ?? "Unknown",
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -412,7 +403,7 @@ class DashboardWidgets {
 
                   Text(
                     product.description ?? "No description",
-                    style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                    style: theme.textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -462,122 +453,15 @@ class DashboardWidgets {
     );
   }
 
-  /*static Widget buildProductCard(Product product, Color bgColor) {
-    // final stock = product.stockQty ?? 0;
-
-    return Container(
-      width: 150,
-      margin: const EdgeInsets.only(right: 12),
-      child: Card(
-        color: bgColor,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12), // Reduced padding slightly
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            // --- START OF FIX 1 ---
-            // Use MainAxisAlignment.spaceBetween to push items apart vertically
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            // --- END OF FIX 1 ---
-            children: [
-              // This Column groups the top part together
-              Column(
-                children: [
-                  // Image / Icon
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                      image: product.imagePath != null && product.imagePath!.isNotEmpty
-                          ? DecorationImage(
-                        image: NetworkImage(product.imagePath!),
-                        fit: BoxFit.cover,
-                      )
-                          : null,
-                    ),
-                    child: product.imagePath == null || product.imagePath!.isEmpty
-                        ? const Center(child: Icon(Icons.water_drop, size: 30, color: Colors.blue))
-                        : null,
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Name
-                  Text(
-                    product.name ?? "Unknown",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  const SizedBox(height: 2),
-
-                  // Description
-                  Text(
-                    product.description ?? "No description",
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 11,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-
-              // Price & Stock
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "₹${product.price ?? '0'}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: product.stockQty > 0
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${product.stockQty} left',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: product.stockQty > 0 ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }*/
-
   // --- ADD MENU OPTION ---
   static Widget buildOptionItem({
+    required BuildContext context,
     required IconData icon,
     required Color color,
     required String label,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -597,11 +481,7 @@ class DashboardWidgets {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey,
-            ),
+            style: theme.textTheme.labelMedium,
           ),
         ],
       ),

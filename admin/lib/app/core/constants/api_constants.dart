@@ -14,17 +14,14 @@ class ApiConstants {
   static const String getCustomer = "/admin/customers/{id}"; // GET
   static const String updateCustomer = "/admin/customers/{id}"; // PUT
 
-  static const String deliveryStockIssue =
-      "/admin/delivery-stock/issue"; // POST
-  static const String deliveryStockReturn =
-      "/admin/delivery-stock/return"; // POST
+  static const String deliveryStockIssue = "/admin/delivery-stock/issue"; // POST
+  static const String deliveryStockReturn = "/admin/delivery-stock/return"; // POST
 
   static const String customerLedger = "/admin/customers/{id}/ledger"; // GET
 
   static const String orders = "/admin/orders"; // GET
   static const String getOrder = "/admin/orders/{id}"; // GET
-  static const String assignOrder =
-      "/admin/orders/{id}/assign-delivery"; // POST
+  static const String assignOrder = "/admin/orders/{id}/assign-delivery"; // POST
 
   static const String products = "/admin/products"; // GET
   static const String createProduct = "/admin/products"; // POST
@@ -38,6 +35,15 @@ class ApiConstants {
   static const String updateRegion = "/admin/regions/{id}"; // PUT
   static const String deleteRegion = "/admin/regions/{id}"; // DELETE
   static const String assignRegion = "/admin/regions/{id}/assign-user"; // POST
+
+  /// List sales / delivery users
+  static const String users = "/admin/users"; // GET
+  /// Create sales or delivery user
+  static const String createUser = "/admin/users"; // POST
+  static const String getUser = "/admin/users/{id}"; // GET
+  static const String updateUser = "/admin/users/{id}"; // PUT
+  static const String deleteUser = "/admin/users/{id}"; // DELETE
+
 
   // Headers
   static const String contentType = "application/json";

@@ -9,13 +9,14 @@ class LedgerScreen extends GetView<LedgerScreenController> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("My Ledger"),
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        scrolledUnderElevation: 0,
       ),
       body: Obx(() {
         if (controller.isLoading) {
@@ -52,7 +53,29 @@ class LedgerScreen extends GetView<LedgerScreenController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Summary Card
-                _buildSummaryCard(data),
+                _buildSummaryCard(data, theme),
+                const SizedBox(height: 20),
+
+                // Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: controller.filterOptions.map((filter) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Obx(() => ChoiceChip(
+                          label: Text(filter),
+                          selected: controller.selectedFilter.value == filter,
+                          onSelected: (selected) {
+                            if (selected) {
+                              controller.setFilter(filter);
+                            }
+                          },
+                        )),
+                      );
+                    }).toList(),
+                  ),
+                ),
                 const SizedBox(height: 20),
                 
                 // Transactions / Orders List
@@ -61,10 +84,9 @@ class LedgerScreen extends GetView<LedgerScreenController> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                // Based on API response, we have 'orders' and 'payments'
-                // We can combine them or show orders as main transactions for now
-                if (data.orders != null)
-                   _buildOrdersList(data.orders!),
+                
+                // Use filteredOrders from controller
+                _buildOrdersList(controller.filteredOrders, theme, isDark),
                 
                 if (data.payments != null && data.payments!.isNotEmpty) ...[
                    const SizedBox(height: 20),
@@ -73,7 +95,7 @@ class LedgerScreen extends GetView<LedgerScreenController> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  _buildPaymentsList(data.payments!),
+                  _buildPaymentsList(data.payments!, theme, isDark),
                 ]
               ],
             ),
@@ -83,7 +105,7 @@ class LedgerScreen extends GetView<LedgerScreenController> {
     );
   }
 
-  Widget _buildSummaryCard(LedgerData data) {
+  Widget _buildSummaryCard(LedgerData data, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -151,9 +173,14 @@ class LedgerScreen extends GetView<LedgerScreenController> {
     );
   }
 
-  Widget _buildOrdersList(List<dynamic> orders) { // Using dynamic to accept OrderData
+  Widget _buildOrdersList(List<dynamic> orders, ThemeData theme, bool isDark) {
     if (orders.isEmpty) {
-      return const Center(child: Text("No orders found"));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Text("No transactions found", style: theme.textTheme.bodyMedium),
+        )
+      );
     }
 
     return ListView.separated(
@@ -163,15 +190,14 @@ class LedgerScreen extends GetView<LedgerScreenController> {
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final order = orders[index];
-        // OrderData order
 
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               )
@@ -179,7 +205,7 @@ class LedgerScreen extends GetView<LedgerScreenController> {
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.red.shade50,
+              backgroundColor: isDark ? Colors.red.withOpacity(0.2) : Colors.red.shade50,
               child: const Icon(
                 Icons.shopping_cart,
                 color: Colors.red,
@@ -187,13 +213,33 @@ class LedgerScreen extends GetView<LedgerScreenController> {
             ),
             title: Text(
               order.orderNo ?? "Order #${order.id}",
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            subtitle: Text(
-              order.scheduledDate != null 
-                  ? DateTimeHelper.formatDateMonth(order.scheduledDate!)
-                  : "N/A",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (order.scheduledDate != null)
+                  Text(
+                    DateTimeHelper.formatDateMonth(order.scheduledDate!),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                const SizedBox(height: 2),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(order.status).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    order.status?.toUpperCase() ?? "UNKNOWN",
+                    style: TextStyle(
+                      fontSize: 10, 
+                      color: _getStatusColor(order.status),
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                )
+              ],
             ),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -209,7 +255,7 @@ class LedgerScreen extends GetView<LedgerScreenController> {
                 ),
                 Text(
                   order.paymentStatus ?? "Unpaid",
-                   style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+                   style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
                 )
               ],
             ),
@@ -219,7 +265,17 @@ class LedgerScreen extends GetView<LedgerScreenController> {
     );
   }
 
-  Widget _buildPaymentsList(List<Payment> payments) {
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'delivered': return Colors.green;
+      case 'assigned': return Colors.blue;
+      case 'created': return Colors.orange;
+      case 'cancelled': return Colors.red;
+      default: return Colors.grey;
+    }
+  }
+
+  Widget _buildPaymentsList(List<Payment> payments, ThemeData theme, bool isDark) {
     if (payments.isEmpty) return const SizedBox.shrink();
 
     return ListView.separated(
@@ -232,11 +288,11 @@ class LedgerScreen extends GetView<LedgerScreenController> {
 
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                 blurRadius: 5,
                 offset: const Offset(0, 2),
               )
@@ -244,21 +300,21 @@ class LedgerScreen extends GetView<LedgerScreenController> {
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.green.shade50,
+              backgroundColor: isDark ? Colors.green.withOpacity(0.2) : Colors.green.shade50,
               child: const Icon(
                 Icons.arrow_downward,
                 color: Colors.green,
               ),
             ),
-            title: Text(
+            title: const Text(
               "Payment Received",
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
               payment.paymentDate != null
                   ? DateTimeHelper.formatDateMonth(payment.paymentDate!)
                   : payment.method ?? "Cash",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+              style: theme.textTheme.bodySmall,
             ),
             trailing: Text(
               "+ ₹${payment.amount}",

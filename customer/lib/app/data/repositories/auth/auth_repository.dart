@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../../core/constants/api_constants.dart';
 import '../../models/api_response_model.dart';
@@ -19,7 +20,7 @@ class AuthRepository {
         cancelToken: _cancelToken,
       );
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.data!.message);
       } else {
         return ApiResponse.error(
           res.message,
@@ -49,7 +50,7 @@ class AuthRepository {
         cancelToken: _cancelToken,
       );
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.data!.message);
       } else {
         return ApiResponse.error(
           res.message,

@@ -162,4 +162,34 @@ class OrdersRepository {
       );
     }
   }
+
+  // 7. Assign Order to Delivery
+  Future<ApiResponse<Order>> assignOrder(int orderId, int userId) async {
+    try {
+      String url = ApiConstants.assignOrder.replaceAll('{id}', orderId.toString());
+
+      final res = await _apiServices.post<SingleOrderResponse>(
+        url,
+            (data) => SingleOrderResponse.fromJson(data),
+        data: {'delivery_id': userId}, // Changed from user_id to delivery_id
+        cancelToken: _cancelToken,
+      );
+
+      if (res.success && res.data?.data != null) {
+        return ApiResponse.success(res.data!.data!);
+      } else {
+        return ApiResponse.error(
+          res.message,
+          statusCode: res.statusCode,
+          errors: res.errors,
+        );
+      }
+    } on DioException catch (e) {
+      return ApiResponse.error(
+        e.message ?? "Failed to assign order",
+        statusCode: e.response?.statusCode,
+        errors: e.response?.data,
+      );
+    }
+  }
 }

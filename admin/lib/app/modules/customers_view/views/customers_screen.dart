@@ -64,13 +64,20 @@ class CustomersScreen extends GetView<CustomersScreenController> {
                   final customer = controller.filteredCustomers[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      child: Text(
-                        customer.shopName
-                                ?.toString()
-                                .substring(0, 1)
-                                .toUpperCase() ??
-                            "?",
-                      ),
+                      backgroundImage: (customer.shopPhotoPath != null &&
+                              customer.shopPhotoPath.toString().isNotEmpty)
+                          ? NetworkImage(customer.shopPhotoPath.toString())
+                          : null,
+                      child: (customer.shopPhotoPath == null ||
+                              customer.shopPhotoPath.toString().isEmpty)
+                          ? Text(
+                              customer.shopName
+                                      ?.toString()
+                                      .substring(0, 1)
+                                      .toUpperCase() ??
+                                  "?",
+                            )
+                          : null,
                     ),
                     title: Text(
                       customer.shopName?.toString() ?? "Unknown Shop",

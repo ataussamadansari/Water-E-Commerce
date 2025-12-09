@@ -1,8 +1,7 @@
-import 'package:admin/app/core/utils/DateTimeHelper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/models/orders/order_model.dart';
 import '../controllers/orders_screen_controller.dart';
+import 'widgets/order_card.dart';
 
 class OrdersScreen extends GetView<OrdersScreenController> {
   const OrdersScreen({super.key});
@@ -11,79 +10,70 @@ class OrdersScreen extends GetView<OrdersScreenController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Orders"),
+        title: const Text("Manage Orders"),
+        centerTitle: true,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
-          // Filter Button
-          Obx(() => PopupMenuButton<OrderFilter>(
-            icon: Icon(Icons.filter_list,
-                color: controller.currentFilter.value != OrderFilter.all
-                    ? Get.theme.primaryColor
-                    : null
-            ),
-            onSelected: controller.setFilter,
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: OrderFilter.all, child: Text("All Orders")),
-              const PopupMenuItem(value: OrderFilter.pending, child: Text("Pending")),
-              const PopupMenuItem(value: OrderFilter.approved, child: Text("Approved")),
-              const PopupMenuItem(value: OrderFilter.delivered, child: Text("Delivered")),
-              const PopupMenuItem(value: OrderFilter.cancelled, child: Text("Cancelled")),
-            ],
-          )),
+          IconButton(
+            onPressed: controller.refreshOrders, 
+            icon: const Icon(Icons.refresh)
+          )
         ],
       ),
       body: Column(
         children: [
-          // --- Search Bar ---
+          // 1. Search Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
+              onChanged: controller.search,
               decoration: InputDecoration(
-                hintText: "Search Order ID, No, or Shop Name...",
+                hintText: "Search order no, customer...",
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.grey.withOpacity(0.05),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                fillColor: Theme.of(context).cardColor,
               ),
-              onChanged: controller.search,
             ),
           ),
 
-          // --- Filter Chips (Optional Visual Indicator) ---
-          Obx(() {
-            if (controller.currentFilter.value == OrderFilter.all) return const SizedBox.shrink();
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-              alignment: Alignment.centerLeft,
-              child: Chip(
-                label: Text(controller.currentFilter.value.name.capitalizeFirst!),
-                onDeleted: () => controller.setFilter(OrderFilter.all),
-                backgroundColor: Get.theme.primaryColor.withOpacity(0.1),
-                labelStyle: TextStyle(color: Get.theme.primaryColor),
-                deleteIconColor: Get.theme.primaryColor,
+          // 2. Filter Chips
+          SizedBox(
+            height: 40,
+            child: Obx(
+              () => ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _buildFilterChip("All", OrderFilter.all),
+                  const SizedBox(width: 8),
+                  _buildFilterChip("Created", OrderFilter.created),
+                  const SizedBox(width: 8),
+                  _buildFilterChip("Assigned", OrderFilter.assigned),
+                  const SizedBox(width: 8),
+                  _buildFilterChip("Delivered", OrderFilter.delivered),
+                  const SizedBox(width: 8),
+                  _buildFilterChip("Cancelled", OrderFilter.cancelled),
+                ],
               ),
-            );
-          }),
+            ),
+          ),
+          const SizedBox(height: 10),
 
-          // --- Orders List ---
+          // 3. Orders List
           Expanded(
             child: Obx(() {
-              if (controller.isLoading && controller.filteredOrders.isEmpty) {
+              if (controller.isLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
 
               if (controller.filteredOrders.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.shopping_bag_outlined, size: 60, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
-                      Text("No orders found", style: TextStyle(color: Colors.grey[600])),
-                    ],
-                  ),
+                return const Center(
+                  child: Text("No orders found matching your criteria."),
                 );
               }
 
@@ -92,10 +82,13 @@ class OrdersScreen extends GetView<OrdersScreenController> {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: controller.filteredOrders.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final order = controller.filteredOrders[index];
-                    return _buildOrderCard(context, order);
+                    return GestureDetector(
+                      onTap: () => controller.showAssignDeliverySheet(order),
+                      child: OrderCard(order: order),
+                    );
                   },
                 ),
               );
@@ -106,112 +99,19 @@ class OrdersScreen extends GetView<OrdersScreenController> {
     );
   }
 
-  Widget _buildOrderCard(BuildContext context, Order order) {
-    final statusColor = _getStatusColor(order.status);
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => controller.gotoOrderDetails(order),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: Order ID and Status
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "#${order.orderNo ?? order.id}",
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      order.status?.toUpperCase() ?? "UNKNOWN",
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-
-              // Customer Details
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Colors.grey[200],
-                    child: const Icon(Icons.store, size: 18, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order.customer?.shopName ?? "Unknown Shop",
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        if (order.scheduledDate != null)
-                          Text(
-                            "Date: ${DateTimeHelper.formatFull(order.scheduledDate!)}", // Format using DateFormat if needed
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                          ),
-                      ],
-                    ),
-                  ),
-                  // Amount
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "₹${order.totalAmount ?? '0.00'}",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.green,
-                        ),
-                      ),
-                      Text(
-                        "${order.items?.length ?? 0} Items",
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ],
-          ),
-        ),
+  Widget _buildFilterChip(String label, OrderFilter filter) {
+    final isSelected = controller.currentFilter.value == filter;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) controller.setFilter(filter);
+      },
+      selectedColor: Get.theme.primaryColor,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : Colors.grey[700],
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
     );
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'approved':
-        return Colors.blue;
-      case 'delivered':
-      case 'completed':
-        return Colors.green;
-      case 'cancelled':
-      case 'rejected':
-        return Colors.red;
-      case 'pending':
-      default:
-        return Colors.orange;
-    }
   }
 }

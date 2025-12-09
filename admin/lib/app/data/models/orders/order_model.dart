@@ -49,9 +49,9 @@ class Order {
       });
     }
   }
-  num? id;
+  int? id;
   String? orderNo;
-  num? customerId;
+  int? customerId;
   dynamic salesId;
   dynamic deliveryId;
   dynamic regionId;

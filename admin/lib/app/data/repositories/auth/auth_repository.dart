@@ -19,7 +19,7 @@ class AuthRepository {
         cancelToken: _cancelToken,
       );
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.data!.message);
       } else {
         return ApiResponse.error(
           res.message,
@@ -49,7 +49,7 @@ class AuthRepository {
         cancelToken: _cancelToken,
       );
       if (res.success && res.data != null) {
-        return ApiResponse.success(res.data!);
+        return ApiResponse.success(res.data!, message: res.data!.message);
       } else {
         return ApiResponse.error(
           res.message,

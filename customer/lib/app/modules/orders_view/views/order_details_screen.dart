@@ -53,15 +53,15 @@ class OrderDetailsScreen extends GetView<OrderDetailsController> {
               const SizedBox(height: 20),
               _buildSectionTitle("Items"),
               const SizedBox(height: 10),
-              _buildItemsList(order),
+              _buildItemsList(context, order),
               const SizedBox(height: 20),
               _buildSectionTitle("Payment Info"),
               const SizedBox(height: 10),
-              _buildPaymentInfo(order),
+              _buildPaymentInfo(context, order),
               const SizedBox(height: 20),
               _buildSectionTitle("Delivery Address"),
               const SizedBox(height: 10),
-              _buildAddressInfo(order),
+              _buildAddressInfo(context, order),
               if (order.notes != null && order.notes!.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 _buildSectionTitle("Notes"),
@@ -102,7 +102,7 @@ class OrderDetailsScreen extends GetView<OrderDetailsController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Order #${order.orderNo ?? order.id}",
+                "#${order.orderNo ?? order.id}",
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Container(
@@ -127,22 +127,35 @@ class OrderDetailsScreen extends GetView<OrderDetailsController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text("Scheduled Date"),
-              Text(DateTimeHelper.formatDateMonth(order.scheduledDate!), style: const TextStyle(fontWeight: FontWeight.w500)),
+              Text((order.scheduledDate != null ? DateTimeHelper.formatDateMonth(order.scheduledDate!) : 'N/A'), style: const TextStyle(fontWeight: FontWeight.w500)),
             ],
           ),
+          if (order.status?.toLowerCase() == 'delivered' && order.deliveredAt != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Delivered At", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  DateTimeHelper.formatDateMonth(order.deliveredAt.toString()), 
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                ),
+              ],
+            ),
+          ]
         ],
       ),
     );
   }
 
-  Widget _buildItemsList(OrderData order) {
+  Widget _buildItemsList(BuildContext context, OrderData order) {
     if (order.items == null || order.items!.isEmpty) {
       return const Text("No items in this order");
     }
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.isDarkMode ? Colors.black : Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListView.separated(
@@ -165,11 +178,11 @@ class OrderDetailsScreen extends GetView<OrderDetailsController> {
     );
   }
 
-  Widget _buildPaymentInfo(OrderData order) {
+  Widget _buildPaymentInfo(BuildContext context, OrderData order) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.isDarkMode ? Colors.black : Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -186,12 +199,12 @@ class OrderDetailsScreen extends GetView<OrderDetailsController> {
     );
   }
 
-  Widget _buildAddressInfo(OrderData order) {
+  Widget _buildAddressInfo(BuildContext context, OrderData order) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.isDarkMode ? Colors.black : Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(

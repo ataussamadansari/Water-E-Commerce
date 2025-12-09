@@ -44,7 +44,7 @@ class AuthScreenController extends GetxController {
 
     if (response.success) {
       isOtpSent.value = true;
-      Get.snackbar("Success", response.message, backgroundColor: Colors.green.withOpacity(0.2));
+      Get.snackbar("Success", response.data!.message!, backgroundColor: Colors.green.withOpacity(0.2));
     } else {
       Get.snackbar("Error", response.message, backgroundColor: Colors.red.withOpacity(0.2));
     }

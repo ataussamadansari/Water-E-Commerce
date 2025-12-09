@@ -3,12 +3,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+// Controller for Cart Screen
 class CartScreenController extends GetxController {
   final CartService _cartService = Get.find<CartService>();
 
   // Getters
   get cart => _cartService.cart;
   bool get isLoading => _cartService.isLoading.value;
+  
+  // Track which item is being updated to avoid full screen loader
+  final Rxn<int> updatingProductId = Rxn<int>();
+
+  // Computed property: Only show full screen loader if NOT updating a specific item
+  bool get showFullScreenLoader => isLoading && updatingProductId.value == null;
   
   // Checkout Fields
   final notesController = TextEditingController();
@@ -24,33 +31,42 @@ class CartScreenController extends GetxController {
     await _cartService.fetchCart();
   }
 
-  Future<void> updateQty(int productId, int qty) async {
-    // Usually update qty is just adding/removing. 
-    // If you have a specific update endpoint, use that.
-    // For now, assume adding overwrites or we calculate difference?
-    // Actually, traditionally addToCart adds to existing. 
-    // If you want to SET quantity, you might need a different logic or remove then add.
-    // Let's assume for now the user can only add or remove items one by one or we just use addToCart for positive changes.
-    // But wait, the API was /addCart. 
-    // If I want to increase by 1, I add 1.
-    // If I want to decrease, I assume I remove?
-    // Let's stick to simple "Remove item" button for now, or if we want +/-, we need to know if Add adds relative or absolute.
-    // Usually Add is relative. 
-    // For simplicity in this iteration:
-    // User can Remove item completely.
-    // User can Add more items from home screen.
-    // But in Cart Screen, usually we want +/-.
-    // If Add is relative, then (+) calls addToCart(id, 1).
-    // What about (-)? Is there a remove one? 
-    // The API `removeItem` usually removes the whole row. 
-    // I will implement "Remove Item" for now.
-    // If we need decrement, we might need a specific endpoint or logic.
-    
-    // Simplification: Just allow removing items for now.
+  Future<void> incrementQty(int productId, int currentQty) async {
+    updatingProductId.value = productId;
+    try {
+      // Send new TOTAL quantity
+      await _cartService.addToCart(productId, currentQty + 1);
+    } finally {
+      updatingProductId.value = null;
+    }
   }
 
-  Future<void> removeItem(int productId) async {
-    await _cartService.removeFromCart(productId);
+  Future<void> decrementQty(int productId, int currentQty, int cartItemId) async {
+    updatingProductId.value = productId;
+    try {
+      if (currentQty > 1) {
+        // Send new TOTAL quantity
+        await _cartService.addToCart(productId, currentQty - 1);
+      } else {
+        // Remove item if qty goes to 0
+        await removeItem(cartItemId);
+      }
+    } finally {
+      updatingProductId.value = null;
+    }
+  }
+
+  Future<void> removeItem(int cartItemId) async {
+    // For remove item, we might want to show loader on that item too?
+    // But removeItem uses cartItemId. updatingProductId tracks productId.
+    // If we want inline loader for remove, we need to track cartItemId or map back.
+    // For now, let's just let remove trigger full screen or handle it separately if needed.
+    // The user specifically asked for "list item loading" which usually refers to qty update.
+    // However, if we remove, full screen load is probably fine or we can track it too.
+    // Let's keep remove as is (full screen) or simply let it be covered by `isLoading`.
+    // If we want to avoid full screen for remove, we need to set updatingProductId (if we can map it) or add updatingCartItemId.
+    // Given the prompt "full screen load na ho jisko update kar rahe h bas wahi list item loading kare", it implies update.
+    await _cartService.removeFromCart(cartItemId);
   }
 
   Future<void> clearCart() async {
@@ -82,17 +98,9 @@ class CartScreenController extends GetxController {
       return;
     }
 
-    // Prepare payload
-    // The API might expect just scheduled_date and notes, as items are in cart session.
-    // Or it might expect the items again. 
-    // Based on `checkout` endpoint in `CartRepository` taking `data`, let's send common fields.
-    
     final payload = {
       "scheduled_date": scheduledDate.value,
       "notes": notesController.text,
-      // "items": ... // If backend needs items list, we map it from cart.value.items
-      // Usually session based cart checkout doesn't require sending items again.
-      // I will assume session based.
     };
 
     final success = await _cartService.checkout(payload);
