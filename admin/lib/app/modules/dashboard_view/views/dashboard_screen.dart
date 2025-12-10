@@ -1,25 +1,30 @@
 import 'package:admin/app/data/services/storage/storage_services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../routes/app_routes.dart';
+import 'package:admin/app/routes/app_routes.dart';
 import '../controllers/dashboard_screen_controller.dart';
-import 'widgets/dashboard_widgets.dart';
 import 'widgets/water_wave_background.dart';
+
+import 'package:admin/app/global_widgets/common_widgets.dart';
+import 'package:admin/app/global_widgets/customer_widgets.dart';
+import 'package:admin/app/global_widgets/order_widgets.dart';
+import 'package:admin/app/global_widgets/product_widgets.dart';
 
 class DashboardScreen extends GetView<DashboardScreenController> {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final color = context.isDarkMode ? Color(0xFF1E1F22) : Color(0xFFF5F7FA);
-    final titleColor = context.isDarkMode ? Colors.black : Colors.white;
+    // final color = context.isDarkMode ? const Color(0xFF1E1F22) : const Color(0xFFF5F7FA);
+    final color = context.theme.scaffoldBackgroundColor;
+    // final titleColor = context.isDarkMode ? Colors.black : Colors.white;
+    final titleColor = color;
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: controller.onRefresh, // Connect to the controller's method
+        onRefresh: controller.onRefresh,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          // physics: const BouncingScrollPhysics(),
           slivers: [
             // --- CUSTOM ANIMATED HEADER ---
             SliverToBoxAdapter(
@@ -52,7 +57,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                       right: -20,
                       child: CircleAvatar(
                         radius: 60,
-                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        backgroundColor: Colors.white.withOpacity(0.05),
                       ),
                     ),
                     Positioned(
@@ -60,7 +65,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                       left: 20,
                       child: CircleAvatar(
                         radius: 10,
-                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        backgroundColor: Colors.white.withOpacity(0.1),
                       ),
                     ),
 
@@ -79,7 +84,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                               fontWeight: FontWeight.bold,
                               shadows: [
                                 Shadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
+                                  color: Colors.black.withOpacity(0.1),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -90,11 +95,11 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                           Text(
                             "Let's manage your water supply.",
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: Colors.white.withOpacity(0.9),
                               fontSize: 14,
                               shadows: [
                                 Shadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
+                                  color: Colors.black.withOpacity(0.1),
                                   blurRadius: 2,
                                   offset: const Offset(0, 1),
                                 ),
@@ -116,7 +121,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                         },
                         child: CircleAvatar(
                           radius: 18,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          backgroundColor: Colors.white.withOpacity(0.2),
                           child: const Icon(
                             Icons.logout,
                             color: Colors.white,
@@ -148,52 +153,43 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    DashboardWidgets.buildQuickAction(
-                      context,
-                      Icons.map,
-                      "All\nRegions",
-                      Colors.orange,
-                      titleColor,
-                      () {
-                        controller.gotoRegions();
-                      },
+                    QuickActionButton(
+                      icon: Icons.map,
+                      label: "All\nRegions",
+                      color: Colors.orange,
+                      bgColor: titleColor,
+                      onTap: () => controller.gotoRegions(),
                     ),
-                    DashboardWidgets.buildQuickAction(
-                      context,
-                      Icons.inventory_2,
-                      "Manage\nStock",
-                      Colors.purple,
-                      titleColor,
-                      () {
-                        controller.gotoManageStock();
-                      },
+                    QuickActionButton(
+                      icon: Icons.inventory_2,
+                      label: "Manage\nStock",
+                      color: Colors.purple,
+                      bgColor: titleColor,
+                      onTap: () => controller.gotoManageStock(),
                     ),
-                    DashboardWidgets.buildQuickAction(
-                      context,
-                      Icons.receipt_long, // Changed Icon
-                      "Customer\nLedger",   // Changed Label
-                      Colors.teal,
-                      titleColor,
-                      () {
-                        controller.gotoLedger(); // Changed Action
-                      },
+                    QuickActionButton(
+                      icon: Icons.receipt_long,
+                      label: "Customer\nLedger",
+                      color: Colors.teal,
+                      bgColor: titleColor,
+                      onTap: () => controller.gotoLedger(),
                     ),
-                    DashboardWidgets.buildQuickAction(
-                      context,
-                      Icons.people_alt, 
-                      "Manage\nUsers", 
-                      Colors.blueGrey,
-                      titleColor,
-                      () {
-                        controller.gotoUsers();
-                      },
+                    QuickActionButton(
+                      icon: Icons.people_alt,
+                      label: "Manage\nUsers",
+                      color: Colors.blueGrey,
+                      bgColor: titleColor,
+                      onTap: () => controller.gotoUsers(),
                     ),
                   ],
                 ),
               ),
             ),
 
-            DashboardWidgets.buildSectionHeader(context, "Overview", titleColor, () {}),
+            SectionHeader(
+              title: "Overview",
+              color: titleColor,
+            ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -203,37 +199,32 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1.5, // Adjust if content overflows
-                        ),
-                    // Build stat cards dynamically from controller's observables
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.5,
+                    ),
                     children: [
-                      DashboardWidgets.buildStatCard(
-                        context: context,
+                      StatCard(
                         title: 'Total Revenue',
                         value:
-                            '₹${controller.totalRevenue.value.toStringAsFixed(0)}', // Format to integer
+                            '₹${controller.totalRevenue.value.toStringAsFixed(0)}',
                         icon: Icons.currency_rupee,
                         color: Colors.green,
                       ),
-                      DashboardWidgets.buildStatCard(
-                        context: context,
+                      StatCard(
                         title: 'Total Orders',
                         value: controller.totalOrders.toString(),
                         icon: Icons.shopping_cart_outlined,
                         color: Colors.blue,
                       ),
-                      DashboardWidgets.buildStatCard(
-                        context: context,
+                      StatCard(
                         title: 'Total Customers',
                         value: controller.totalCustomers.toString(),
                         icon: Icons.groups_outlined,
                         color: Colors.orange,
                       ),
-                      DashboardWidgets.buildStatCard(
-                        context: context,
+                      StatCard(
                         title: 'Pending Orders',
                         value: controller.pendingOrders.toString(),
                         icon: Icons.pending_actions_outlined,
@@ -245,14 +236,11 @@ class DashboardScreen extends GetView<DashboardScreenController> {
               ),
             ),
 
-            DashboardWidgets.buildSectionHeader(
-              context,
-              "Recent Orders",
-              titleColor,
+            SectionHeader(
+              title: "Recent Orders",
+              color: titleColor,
               actionText: "View All",
-              () {
-                controller.gotoOrders();
-              },
+              onTap: () => controller.gotoOrders(),
             ),
             SliverToBoxAdapter(
               child: Obx(() {
@@ -265,7 +253,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                   );
                 }
 
-                if(controller.isErrorOrders) {
+                if (controller.isErrorOrders) {
                   return Center(
                     child: Text(controller.hasErrorOrders),
                   );
@@ -282,7 +270,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.05),
+                        color: Colors.grey.withOpacity(0.05),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -296,11 +284,13 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                           child: Center(child: Text("No recent orders found.")),
                         )
                       else
-                        // Use the observable `orders` list and limit to 5
                         ...controller.orders.take(5).map((order) {
                           final isLast =
                               controller.orders.take(5).last == order;
-                          return DashboardWidgets.buildOrderItem(context, order, isLast);
+                          return OrderListTile(
+                            order: order,
+                            isLast: isLast,
+                          );
                         }),
                     ],
                   ),
@@ -308,21 +298,16 @@ class DashboardScreen extends GetView<DashboardScreenController> {
               }),
             ),
 
-            DashboardWidgets.buildSectionHeader(
-              context,
-              "Customers",
-              titleColor,
+            SectionHeader(
+              title: "Customers",
+              color: titleColor,
               actionText: "View All",
-              () {
-                controller.gotoCustomers();
-              },
+              onTap: () => controller.gotoCustomers(),
             ),
-            // --- FIX STARTS HERE ---
             SliverToBoxAdapter(
               child: Obx(() {
-                // Wrap with Obx to listen for changes
                 if (controller.isLoadingCustomers) {
-                  return Center(
+                  return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(20.0),
                       child: CircularProgressIndicator(),
@@ -330,48 +315,44 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                   );
                 }
 
-                if(controller.isErrorCustomer) {
+                if (controller.isErrorCustomer) {
                   return Center(
                     child: Text(controller.hasErrorCustomer),
                   );
                 }
 
                 return Container(
-                  margin: EdgeInsets.symmetric(
+                  margin: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: titleColor,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.05),
+                        color: Colors.grey.withOpacity(0.05),
                         blurRadius: 15,
-                        offset: Offset(0, 5),
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Use the observable customers list
                       if (controller.customers.isEmpty)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 20.0),
                           child: Center(child: Text("No customers found.")),
                         )
                       else
-                        ...controller.customers
-                            .take(5)
-                            .map(
-                              (customer) =>
-                                  DashboardWidgets.buildCustomerCard(
-                                    context,
-                                    customer,
-                                    onEyeTap: () => controller.showCustomerDetailsBottomSheet(customer),
-                                  ),
+                        ...controller.customers.take(5).map(
+                              (customer) => CustomerListTile(
+                                customer: customer,
+                                onEyeTap: () => controller
+                                    .showCustomerDetailsBottomSheet(customer),
+                              ),
                             ),
                     ],
                   ),
@@ -379,15 +360,11 @@ class DashboardScreen extends GetView<DashboardScreenController> {
               }),
             ),
 
-            // --- FIX ENDS HERE ---
-            DashboardWidgets.buildSectionHeader(
-              context,
-              "Popular Products",
-              titleColor,
+            SectionHeader(
+              title: "Popular Products",
+              color: titleColor,
               actionText: "View All",
-              () {
-                controller.gotoProducts();
-              },
+              onTap: () => controller.gotoProducts(),
             ),
             SliverToBoxAdapter(
               child: Padding(
@@ -407,7 +384,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                           );
                         }
 
-                        if(controller.isErrorProduct) {
+                        if (controller.isErrorProduct) {
                           return Center(
                             child: Text(controller.hasErrorProduct),
                           );
@@ -431,10 +408,9 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                           itemCount: controller.products.length,
                           itemBuilder: (context, index) {
                             final product = controller.products[index];
-                            return DashboardWidgets.buildProductCard(
-                              context,
-                              product,
-                              titleColor,
+                            return ProductCard(
+                              product: product,
+                              bgColor: titleColor,
                             );
                           },
                         );
@@ -458,7 +434,6 @@ class DashboardScreen extends GetView<DashboardScreenController> {
     );
   }
 
-  // --- ADD MENU BOTTOM SHEET ---
   void _showAddOptions(BuildContext context) {
     Get.bottomSheet(
       Container(
@@ -470,7 +445,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
         ),
         decoration: BoxDecoration(
           color: context.isDarkMode ? Colors.black : Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -499,19 +474,15 @@ class DashboardScreen extends GetView<DashboardScreenController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                DashboardWidgets.buildOptionItem(
-                  context: context,
+                OptionItem(
                   icon: Icons.person_add,
                   color: Colors.blue,
                   label: "Customer",
                   onTap: () {
-                    Get.back(); // Close bottom sheet
-                    // Navigate to add customer
-                    // Get.toNamed(Routes.addCustomer);
+                    Get.back();
                   },
                 ),
-                DashboardWidgets.buildOptionItem(
-                  context: context,
+                OptionItem(
                   icon: Icons.add_box,
                   color: Colors.green,
                   label: "Product",
@@ -520,8 +491,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                     controller.gotoAddProduct();
                   },
                 ),
-                DashboardWidgets.buildOptionItem(
-                  context: context,
+                OptionItem(
                   icon: Icons.map,
                   color: Colors.orange,
                   label: "Region",
@@ -530,8 +500,7 @@ class DashboardScreen extends GetView<DashboardScreenController> {
                     controller.gotoAddRegion();
                   },
                 ),
-                DashboardWidgets.buildOptionItem(
-                  context: context,
+                OptionItem(
                   icon: Icons.person_add_alt_1,
                   color: Colors.purple,
                   label: "User",

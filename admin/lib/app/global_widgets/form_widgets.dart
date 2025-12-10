@@ -7,32 +7,41 @@ class FormWidgets {
   static Widget buildTextField({
     required TextEditingController controller,
     required String label,
-    required IconData icon,
+    IconData? icon,
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
+    bool readOnly = false,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       textCapitalization: TextCapitalization.sentences,
+      readOnly: readOnly,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Get.theme.primaryColor),
-        ),
-        filled: true,
-        // fillColor: Colors.white,
+        prefixIcon: icon != null ? Icon(icon) : null,
+        // If readOnly, remove borders or make them invisible to look like plain text
+        border: readOnly
+            ? InputBorder.none
+            : OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+        enabledBorder: readOnly
+            ? InputBorder.none
+            : OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+        focusedBorder: readOnly
+            ? InputBorder.none
+            : OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Get.theme.primaryColor),
+              ),
+        filled: !readOnly,
+        contentPadding: readOnly ? const EdgeInsets.all(0) : null,
       ),
       validator: validator,
     );
@@ -43,13 +52,12 @@ class FormWidgets {
     required String label,
     required RxBool value,
     required IconData icon,
+    bool isEditable = true,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        // color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        // border: Border.all(color: Colors.grey[300]!),
       ),
       child: Row(
         children: [
@@ -62,10 +70,9 @@ class FormWidgets {
             ),
           ),
           Obx(
-                () => Switch(
+            () => Switch(
               value: value.value,
-              onChanged: (newValue) => value.value = newValue,
-              // activeColor: Get.theme.primaryColor,
+              onChanged: isEditable ? (newValue) => value.value = newValue : null,
             ),
           ),
         ],
@@ -80,7 +87,7 @@ class FormWidgets {
     required RxBool isLoading,
   }) {
     return Obx(
-          () => SizedBox(
+      () => SizedBox(
         width: double.infinity,
         child: ElevatedButton(
           onPressed: isLoading.value ? null : onPressed,
@@ -93,18 +100,18 @@ class FormWidgets {
           ),
           child: isLoading.value
               ? const SizedBox(
-            height: 24,
-            width: 24,
-            child: CircularProgressIndicator(color: Colors.white),
-          )
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
               : Text(
-            text,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+                  text,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
         ),
       ),
     );

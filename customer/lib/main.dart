@@ -1,3 +1,5 @@
+import 'package:customer/app/data/services/notification/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
@@ -9,15 +11,12 @@ import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 
 void main() async {
-  // 1. Initialize Bindings FIRST to avoid errors with platform channels
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Load Environment variables
   await dotenv.load(fileName: ".env");
-
-  // 3. Initialize Storage
+  await Firebase.initializeApp();
   await GetStorage.init();
-
+  await Get.putAsync(() => NotificationService().init());
   runApp(const MyApp());
 }
 

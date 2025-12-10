@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 
 import '../../../core/constants/api_constants.dart';
 import '../../models/api_response_model.dart';

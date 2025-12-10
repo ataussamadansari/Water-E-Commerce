@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/home_screen_controller.dart';
 import 'widgets/home_app_bar.dart';
 import 'widgets/home_body.dart';
-import '../../../routes/app_routes.dart';
+import '../../../global_widgets/cart_summary_fab.dart';
 
 class HomeScreen extends GetView<HomeScreenController> {
   const HomeScreen({super.key});
@@ -25,24 +25,8 @@ class HomeScreen extends GetView<HomeScreenController> {
           ),
         ],
       ),
-      floatingActionButton: Obx(() {
-        final cart = controller.cartData.value;
-        if (cart == null || cart.totalQty == null || cart.totalQty == 0) {
-          return const SizedBox.shrink();
-        }
-
-        return FloatingActionButton.extended(
-          onPressed: () {
-            Get.toNamed(Routes.cart);
-          },
-          backgroundColor: Colors.blue.shade700,
-          icon: const Icon(Icons.shopping_cart, color: Colors.white),
-          label: Text(
-            "${cart.totalQty} Items • ₹${cart.totalAmount ?? 0}",
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-        );
-      }),
+      // Use the reusable global widget for the FAB
+      floatingActionButton: const CartSummaryFab(),
     );
   }
 }

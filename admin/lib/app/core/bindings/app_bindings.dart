@@ -1,6 +1,7 @@
 import 'package:admin/app/data/services/customer/customer_service.dart';
 import 'package:admin/app/data/services/product/product_service.dart';
 import 'package:admin/app/data/services/user/user_service.dart';
+import 'package:admin/app/data/services/firebase_messaging_service.dart';
 import 'package:get/get.dart';
 
 import '../../data/services/order/order_service.dart';
@@ -16,5 +17,6 @@ class AppBindings extends Bindings {
     Get.lazyPut<OrderService>(() => OrderService(), fenix: true);
     Get.lazyPut<UserService>(() => UserService(), fenix: true);
 
+    Get.putAsync<FirebaseMessagingService>(() => FirebaseMessagingService().init());
   }
 }
